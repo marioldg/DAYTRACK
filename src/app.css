@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "tailwindcss";
+
+/* Opcional: altura completa para centrar */
+html, body, #svelte { height: 100%; }
