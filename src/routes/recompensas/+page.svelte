@@ -17,6 +17,11 @@
   let streak = 0;
   let notification = '';
 
+  // Drawer (panel lateral)
+  let sidebarOpen = false;
+  const toggleSidebar = () => (sidebarOpen = !sidebarOpen);
+  const closeSidebar = () => (sidebarOpen = false);
+
   const LIST_KEY = 'rewards-list';
 
   function saveRewards() {
@@ -70,7 +75,7 @@
     if (r.claimed) return;
     r.claimed = true;
     saveRewards();
-    rewards = [...rewards]; // fuerza reactividad
+    rewards = [...rewards]; // reactividad
     notification = `🎉 Congratulations! You unlocked "${r.title}" 🎉`;
     setTimeout(() => (notification = ''), 3500);
   }
@@ -79,6 +84,12 @@
     r.claimed = false;
     saveRewards();
     rewards = [...rewards];
+  }
+
+  function deleteReward(r: Reward) {
+    rewards = rewards.filter(x => x.id !== r.id);
+    localStorage.removeItem(`reward-${r.id}-claimed`);
+    saveRewards();
   }
 
   onMount(() => {
@@ -90,127 +101,154 @@
   $: visibleList = rewards.filter(r => !r.claimed);
 </script>
 
-<!-- Fondo azul MÁS intenso: cambia aquí (p.ej. bg-sky-400/bg-blue-400 para aún más) -->
-<main class="min-h-screen bg-sky-300 p-4 md:p-6">
-  <!-- Layout a pantalla completa: aside pegado a la izquierda -->
-  <div class="grid grid-cols-12 gap-6">
-    <!-- ASIDE IZQUIERDO (pegado a la izquierda del viewport) -->
-    <aside class="col-span-12 md:col-span-3">
-      <div class="rounded-2xl border border-slate-200 bg-white/90 backdrop-blur p-4 shadow space-y-4">
-        <div>
-          <div class="text-sm font-semibold text-slate-600">Current streak</div>
-          <div class="text-2xl font-extrabold text-slate-800 flex items-center gap-2">
-            {streak} {streak > 0 ? '🔥' : ''}
-          </div>
-        </div>
+<!-- Fondo azul marino (se mantiene) -->
+<main class="min-h-screen bg-blue-900 p-4 md:p-6 relative">
 
-        <div>
-          <div class="text-sm font-semibold text-slate-600 mb-2">Claimed</div>
-          {#if claimedList.length === 0}
-            <p class="text-sm text-slate-500">No rewards claimed yet.</p>
-          {:else}
-            <ul class="space-y-2">
-              {#each claimedList as r}
-                <li class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 flex items-center justify-between">
-                  <span class="text-emerald-700 font-medium">{r.title}</span>
-                  <button
-                    on:click={() => undoReward(r)}
-                    class="text-xs px-2 py-1 rounded bg-rose-600 text-white hover:bg-rose-700"
-                  >
-                    Undo
-                  </button>
-                </li>
-              {/each}
-            </ul>
-          {/if}
-        </div>
-      </div>
-    </aside>
+  <!-- Botón hamburguesa -->
+  <button
+    class="fixed left-4 top-4 z-50 rounded-xl border border-white/20 bg-white/20 text-white px-3 py-2 backdrop-blur hover:bg-white/30"
+    aria-label="Open/close panel"
+    aria-expanded={sidebarOpen}
+    on:click={toggleSidebar}
+  >
+    ☰
+  </button>
 
-    <!-- CONTENIDO DERECHO -->
-    <section class="col-span-12 md:col-span-9">
-      <!-- Header: título centrado con botón Back rojo a la derecha -->
-      <header class="relative mb-10 md:mb-12">
-        <h1 class="text-center text-4xl md:text-5xl font-extrabold text-slate-900">
-          🏆 Your Rewards
-        </h1>
-        <a
-          href="/"
-          class="absolute right-0 top-1/2 -translate-y-1/2 inline-block rounded-lg bg-rose-600 px-3 py-1.5 text-white text-sm font-semibold shadow hover:bg-rose-700"
-          aria-label="Back to home"
-        >
-          ← Back
-        </a>
-      </header>
-
-      <!-- Notificación -->
-      {#if notification}
-        <div class="mb-4 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 px-4 py-3 shadow">
-          {notification}
-        </div>
-      {/if}
-
-      <!-- Add your own reward (debajo del título) -->
-      <div class="mb-6 rounded-2xl border border-slate-200 bg-white/90 backdrop-blur p-5 shadow">
-        <h2 class="text-lg font-semibold text-slate-800 mb-3">Add your own reward</h2>
-        <div class="flex flex-col gap-3 sm:flex-row">
-          <input
-            type="text"
-            bind:value={rewardTitle}
-            placeholder="Title (e.g., Go to the movies)"
-            class="flex-1 px-4 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm"
-          />
-          <input
-            type="number"
-            bind:value={rewardDays}
-            min="1"
-            placeholder="Days"
-            class="w-28 px-4 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm"
-          />
-          <input
-            type="text"
-            bind:value={rewardDescription}
-            placeholder="Description (optional)"
-            class="flex-1 px-4 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm"
-          />
-          <button
-            on:click={addReward}
-            class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow"
-          >
-            ➕ Add reward
-          </button>
+  <!-- Drawer lateral -->
+  {#if sidebarOpen}
+    <div class="fixed inset-0 z-40 bg-black/40" on:click={closeSidebar}></div>
+  {/if}
+  <aside
+    class="fixed left-0 top-0 z-50 h-full w-80 -translate-x-full transform transition-transform duration-300"
+    class:translate-x-0={sidebarOpen}
+    aria-hidden={!sidebarOpen}
+  >
+    <!-- Panel en amarillo -->
+    <div class="h-full overflow-y-auto p-4 space-y-4 rounded-r-2xl border-r border-yellow-400 bg-yellow-200 shadow-xl">
+      <div>
+        <div class="text-sm font-semibold text-blue-800">Current streak</div>
+        <div class="text-2xl font-extrabold text-blue-900 flex items-center gap-2">
+          {streak} {streak > 0 ? '🔥' : ''}
         </div>
       </div>
 
-      <!-- Grid de rewards no reclamadas -->
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {#if visibleList.length === 0}
-          <p class="text-slate-700">No rewards yet. Add one above.</p>
+      <div>
+        <div class="text-sm font-semibold text-blue-900 mb-2">Claimed</div>
+        {#if claimedList.length === 0}
+          <p class="text-sm text-blue-800/90">No rewards claimed yet.</p>
         {:else}
-          {#each visibleList as r}
-            <div class="rounded-2xl border border-slate-200 bg-white/90 backdrop-blur p-4 shadow flex flex-col justify-between">
-              <div>
-                <h3 class="font-bold text-slate-800 mb-1">{r.title}</h3>
-                {#if r.description}
-                  <p class="text-sm text-slate-600 mb-2">{r.description}</p>
-                {/if}
-                <p class="text-xs text-slate-500">Requires {r.days} days</p>
-                <p class="text-xs text-slate-500">
-                  Progress: {Math.min(streak, r.days)}/{r.days} days
-                  ({Math.round((Math.min(streak, r.days)/r.days)*100)}%)
-                </p>
-              </div>
-              <button
-                on:click={() => claimReward(r)}
-                class="mt-3 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={streak < r.days}
-              >
-                {streak >= r.days ? 'Claim' : 'Locked'}
-              </button>
-            </div>
-          {/each}
+          <ul class="space-y-2">
+            {#each claimedList as r}
+              <!-- Claimed en verde MÁS oscuro -->
+              <li class="rounded-lg border border-emerald-600 bg-emerald-300 px-3 py-2 flex items-center justify-between">
+                <span class="text-emerald-900 font-semibold">{r.title}</span>
+                <button
+                  on:click={() => undoReward(r)}
+                  class="text-xs px-2 py-1 rounded bg-rose-600 text-white hover:bg-rose-700"
+                >
+                  Undo
+                </button>
+              </li>
+            {/each}
+          </ul>
         {/if}
       </div>
-    </section>
+    </div>
+  </aside>
+
+  <!-- Cabecera -->
+  <header class="relative mb-10 md:mb-12">
+    <h1 class="text-center text-white text-5xl md:text-6xl font-extrabold tracking-tight">
+      🏆 YOUR REWARDS 🏆
+    </h1>
+    <a
+      href="/"
+      class="absolute right-0 top-1/2 -translate-y-1/2 inline-block rounded-lg bg-rose-600 px-3 py-1.5 text-white text-sm font-semibold shadow hover:bg-rose-700"
+      aria-label="Back to home"
+    >
+      ← Back
+    </a>
+  </header>
+
+  <!-- Notificación -->
+  {#if notification}
+    <div class="mb-4 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 px-4 py-3 shadow">
+      {notification}
+    </div>
+  {/if}
+
+  <!-- Card Add (azul más claro) -->
+  <div class="mb-6 rounded-2xl border border-blue-600 bg-blue-500 text-white p-5 shadow">
+    <h2 class="text-lg font-semibold mb-3">Add your own reward</h2>
+    <div class="flex flex-col gap-3 sm:flex-row">
+      <!-- Inputs en azul claro -->
+      <input
+        type="text"
+        bind:value={rewardTitle}
+        placeholder="Title (e.g., Go to the movies)"
+        class="flex-1 px-4 py-2 rounded-xl border border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-400 shadow-sm bg-sky-100 text-blue-900"
+      />
+      <input
+        type="number"
+        bind:value={rewardDays}
+        min="1"
+        placeholder="Days"
+        class="w-28 px-4 py-2 rounded-xl border border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-400 shadow-sm bg-sky-100 text-blue-900"
+      />
+      <input
+        type="text"
+        bind:value={rewardDescription}
+        placeholder="Description (optional)"
+        class="flex-1 px-4 py-2 rounded-xl border border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-400 shadow-sm bg-sky-100 text-blue-900"
+      />
+      <!-- Botón Add en tono más claro -->
+      <button
+        on:click={addReward}
+        class="px-5 py-2 rounded-xl bg-blue-400 hover:bg-blue-500 text-white font-semibold shadow"
+      >
+        ➕ Add reward
+      </button>
+    </div>
+  </div>
+
+  <!-- Recompensas no reclamadas: azul claro + textos en azul más oscuro -->
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {#if visibleList.length === 0}
+      <p class="text-blue-200">No rewards yet. Add one above.</p>
+    {:else}
+      {#each visibleList as r}
+        <div class="rounded-2xl border border-sky-300 bg-sky-100 p-4 shadow flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-blue-900 mb-1">{r.title}</h3>
+            {#if r.description}
+              <p class="text-sm text-blue-800 mb-2">{r.description}</p>
+            {/if}
+            <p class="text-xs text-blue-700">Requires {r.days} days</p>
+            <p class="text-xs text-blue-700">
+              Progress: {Math.min(streak, r.days)}/{r.days} days
+              ({Math.round((Math.min(streak, r.days)/r.days)*100)}%)
+            </p>
+          </div>
+
+          <!-- Claim verde -->
+          <button
+            on:click={() => claimReward(r)}
+            class="mt-3 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={streak < r.days}
+          >
+            {streak >= r.days ? 'Claim' : 'Locked'}
+          </button>
+
+          <!-- Delete rojo debajo -->
+          <button
+            on:click={() => deleteReward(r)}
+            class="mt-2 px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold"
+            title="Delete this reward"
+          >
+            Delete
+          </button>
+        </div>
+      {/each}
+    {/if}
   </div>
 </main>

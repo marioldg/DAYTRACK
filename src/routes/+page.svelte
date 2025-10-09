@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
 
   // -------------------------
-  // State + messages
+  // State + messages (SIN CAMBIOS DE LÓGICA)
   // -------------------------
   let habits: string[] = []; // start with no habits
   let habitText = '';
@@ -46,7 +46,7 @@
   }
 
   // -------------------------
-  // Streak logic
+  // Streak logic (SIN CAMBIOS)
   // -------------------------
   let checks: boolean[] = [];
   let streak = 0;
@@ -73,18 +73,10 @@
   const CHECKS_PREFIX = 'checks-';
   const NOTE_PREFIX = 'note-';
 
-  function todayKey() {
-    return toLocalYMD(new Date());
-  }
-  function completedKey(date: string) {
-    return `${COMPLETED_PREFIX}${date}`;
-  }
-  function checksKey(date: string) {
-    return `${CHECKS_PREFIX}${date}`;
-  }
-  function noteKey(date: string) {
-    return `${NOTE_PREFIX}${date}`;
-  }
+  function todayKey() { return toLocalYMD(new Date()); }
+  function completedKey(date: string) { return `${COMPLETED_PREFIX}${date}`; }
+  function checksKey(date: string) { return `${CHECKS_PREFIX}${date}`; }
+  function noteKey(date: string) { return `${NOTE_PREFIX}${date}`; }
 
   function saveChecksFor(date: string) {
     localStorage.setItem(checksKey(date), JSON.stringify(checks));
@@ -110,37 +102,24 @@
   function getCompleted(date: string): boolean {
     const raw = localStorage.getItem(completedKey(date));
     if (!raw) return false;
-    try {
-      return !!JSON.parse(raw);
-    } catch {
-      return false;
-    }
+    try { return !!JSON.parse(raw); } catch { return false; }
   }
 
-  function saveStreak() {
-    localStorage.setItem(STREAK_KEY, String(streak));
-  }
+  function saveStreak() { localStorage.setItem(STREAK_KEY, String(streak)); }
   function loadStreak() {
     const raw = localStorage.getItem(STREAK_KEY);
     const v = Number(raw);
     streak = Number.isFinite(v) && v >= 0 ? v : 0;
   }
 
-  function saveLastDate(date: string) {
-    localStorage.setItem(LAST_DAY_KEY, date);
-  }
-  function loadLastDate(): string | null {
-    return localStorage.getItem(LAST_DAY_KEY);
-  }
+  function saveLastDate(date: string) { localStorage.setItem(LAST_DAY_KEY, date); }
+  function loadLastDate(): string | null { return localStorage.getItem(LAST_DAY_KEY); }
 
   function rollStreakIfNewDay() {
     const today = todayKey();
     const last = loadLastDate();
 
-    if (!last) {
-      saveLastDate(today);
-      return;
-    }
+    if (!last) { saveLastDate(today); return; }
     if (last === today) return;
 
     const diff = daysDiff(last, today);
@@ -158,9 +137,6 @@
     loadChecksFor(today);
     loadNoteFor(today);
     saveLastDate(today);
-    noteLocked = (noteText?.trim().length ?? 0) > 0;
-    if (noteLocked) noteMessage = '✅ Daily note submitted';
-    else noteMessage = '';
   }
 
   $: allCompleted =
@@ -173,29 +149,68 @@
   }
 
   // -------------------------
-  // Daily note (one per day)
+  // Daily notes (SIN LÍMITE)
   // -------------------------
   let noteText: string = '';
   let noteMessage: string = '';
-  let noteLocked: boolean = false;
 
   function saveNoteFor(date: string) {
-    if (noteLocked) return;
     const toSave = (noteText ?? '').trim();
     if (!toSave) {
       noteMessage = '⚠️ Write something before saving.';
       return;
     }
-    localStorage.setItem(noteKey(date), toSave);
-    noteMessage = '✅ Daily note submitted';
-    noteLocked = true;
+    const prev = localStorage.getItem(noteKey(date));
+    const next = prev ? prev + '\n\n' + toSave : toSave;
+    localStorage.setItem(noteKey(date), next);
+    noteMessage = '✅ Note saved';
+    setTimeout(() => (noteMessage = ''), 1600);
+    noteText = '';
   }
   function loadNoteFor(date: string) {
     const raw = localStorage.getItem(noteKey(date));
-    noteText = raw ?? '';
-    noteLocked = (noteText?.trim().length ?? 0) > 0;
-    noteMessage = noteLocked ? '✅ Daily note submitted' : '';
+    // no lock; just preload nothing
+    noteText = '';
+    noteMessage = raw ? 'ℹ️ You already have notes today' : '';
+    colour
   }
+
+  // -------------------------
+  // Sidebar (drawer) (SIN CAMBIOS DE LÓGICA)
+  // -------------------------
+  let sidebarOpen = false;
+  function toggleSidebar() { sidebarOpen = !sidebarOpen; }
+  function closeSidebar() { sidebarOpen = false; }
+
+  // -------------------------
+  // Celebration GIFs (SIN CAMBIOS DE LÓGICA)
+  // -------------------------
+  let showCelebration = false;
+  let celebrationGif = '';
+  function checkCelebration() {
+    if ([5, 10, 20].includes(streak)) {
+      celebrationGif =
+        streak === 5
+          ? 'https://media.giphy.com/media/xT9IgG50Fb7Mi0prBC/giphy.gif'
+          : streak === 10
+          ? 'https://media.giphy.com/media/26FLdmIp6wJr91JAI/giphy.gif'
+          : 'https://media.giphy.com/media/l0Exk8EUzSLsrErEQ/giphy.gif';
+      showCelebration = true;
+      setTimeout(() => (showCelebration = false), 6000);
+    }
+  }
+
+  // -------------------------
+  // Streak badge colors (solo badge)
+  // -------------------------
+  $: streakBadgeClasses =
+    streak >= 20
+      ? 'bg-red-100/80 border-red-300 text-red-900'
+      : streak >= 10
+      ? 'bg-orange-100/80 border-orange-300 text-orange-900'
+      : streak >= 5
+      ? 'bg-yellow-100/80 border-yellow-300 text-yellow-900'
+      : 'bg-gray-100 border-gray-300 text-slate-900';
 
   onMount(() => {
     checks = Array(habits.length).fill(false);
@@ -204,178 +219,120 @@
     loadChecksFor(todayKey());
     loadNoteFor(todayKey());
   });
-
-  // -------------------------
-  // Sidebar (drawer)
-  // -------------------------
-  let sidebarOpen = false;
-  function toggleSidebar() {
-    sidebarOpen = !sidebarOpen;
-  }
-  function closeSidebar() {
-    sidebarOpen = false;
-  }
-
-  // -------------------------
-  // Colors only for the streak badge (not the whole card)
-  // -------------------------
-  $: streakBadgeClasses =
-    streak >= 20
-      ? 'bg-red-100/80 border-red-300 text-red-800'
-      : streak >= 10
-      ? 'bg-orange-100/80 border-orange-300 text-orange-800'
-      : streak >= 5
-      ? 'bg-yellow-100/80 border-yellow-300 text-yellow-800'
-      : 'bg-gray-100 border-gray-200 text-slate-800';
-
-  // -------------------------
-  // Celebration GIFs (effort-themed) as a small thumbnail under the sidebar
-  // -------------------------
-  let showCelebration = false;
-  let celebrationGif = '';
-
-  function checkCelebration() {
-    if ([5, 10, 20].includes(streak)) {
-      celebrationGif =
-        streak === 5
-          // push / grit
-          ? 'https://media.giphy.com/media/xT9IgG50Fb7Mi0prBC/giphy.gif'
-          : streak === 10
-          // keep running / perseverance
-          ? 'https://media.giphy.com/media/26FLdmIp6wJr91JAI/giphy.gif'
-          // summit / big effort payoff
-          : 'https://media.giphy.com/media/l0Exk8EUzSLsrErEQ/giphy.gif';
-      showCelebration = true;
-      // hide after 6s
-      setTimeout(() => (showCelebration = false), 6000);
-    }
-  }
 </script>
 
-<main class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
-  <!-- Menu Button -->
+<!-- ========= DISTRIBUCIÓN + COLORES (solo clases y layout) ========= -->
+
+<!-- Fondo azul marino, textos por defecto en azul oscuro para contraste en cards -->
+<main class="min-h-screen bg-blue-900 text-blue-900 relative p-4 md:p-6">
+
+  <!-- Botón hamburguesa (amarillo, como Rewards) -->
   <button
-    class="fixed left-3 top-3 z-40 rounded-xl border border-slate-200 bg-white/90 backdrop-blur px-3 py-2 shadow hover:bg-slate-50"
+    class="fixed left-4 top-4 z-50 rounded-xl border border-yellow-400 bg-yellow-300 px-3 py-2 shadow hover:bg-yellow-400"
     on:click={toggleSidebar}
-    aria-label="Open/close menu"
+    aria-label="Open/close panel"
     aria-expanded={sidebarOpen}
     aria-controls="app-sidebar"
   >
     {#if !sidebarOpen} ☰ {:else} ✕ {/if}
   </button>
 
+  <!-- Overlay del drawer -->
   {#if sidebarOpen}
-    <div class="fixed inset-0 z-30 bg-black/30" on:click={closeSidebar} />
+    <div class="fixed inset-0 z-40 bg-black/40" on:click={closeSidebar} />
   {/if}
 
-  <!-- Sidebar -->
+  <!-- Drawer lateral (amarillo) -->
   <aside
     id="app-sidebar"
-    class="fixed left-0 top-0 z-40 h-full w-80 -translate-x-full transform shadow-xl transition-transform duration-300"
+    class="fixed left-0 top-0 z-50 h-full w-80 -translate-x-full transform transition-transform duration-300"
     class:translate-x-0={sidebarOpen}
   >
-    <div class="p-4">
-      <div class="rounded-2xl border border-slate-200 bg-white/90 backdrop-blur p-4 shadow">
-        <h2 class="text-sm font-semibold text-slate-600 mb-2">Navigation</h2>
+    <div class="h-full overflow-y-auto p-4 space-y-4 rounded-r-2xl border-r border-yellow-400 bg-yellow-200 shadow-xl">
+      <div class="text-sm font-semibold text-blue-800">Navigation</div>
+      <nav class="space-y-2">
         <a
           href="/diario"
           data-sveltekit-preload-data
-          class="block w-full text-left px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-800"
+          class="block w-full text-left px-3 py-2 rounded-xl border border-yellow-300 bg-yellow-100 hover:bg-yellow-200 text-blue-900"
           on:click={closeSidebar}
         >
           📔 Journal
         </a>
-
-
         <a
-  href="/agenda"
-  data-sveltekit-preload-data
-  class="block w-full text-left px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-800"
-  on:click={closeSidebar}
->
-  📅 Schedule
-</a>
+          href="/agenda"
+          data-sveltekit-preload-data
+          class="block w-full text-left px-3 py-2 rounded-xl border border-yellow-300 bg-yellow-100 hover:bg-yellow-200 text-blue-900"
+          on:click={closeSidebar}
+        >
+          📅 Schedule
+        </a>
+        <a
+          href="/recompensas"
+          data-sveltekit-preload-data
+          class="block w-full text-left px-3 py-2 rounded-xl border border-yellow-300 bg-yellow-100 hover:bg-yellow-200 text-blue-900"
+          on:click={closeSidebar}
+        >
+          🏆 Your Rewards
+        </a>
+      </nav>
 
-<a
-  href="/recompensas"
-  data-sveltekit-preload-data
-  class="block w-full text-left px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-800"
-  on:click={closeSidebar}
->
-  🏆 Your Rewards
-</a>
+      <hr class="my-4 border-yellow-300" />
 
-
-
-        <hr class="my-4 border-slate-200" />
-
-        <!-- STREAK BADGE (only this changes color) -->
-        <div>
-          <div class="text-xs uppercase tracking-wider text-slate-500">Streak</div>
-          <div class={`mt-2 inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-base font-extrabold ${streakBadgeClasses}`}>
-            {streak} {streak > 0 ? '🔥' : ''}
-          </div>
-          <p class="text-[11px] text-slate-500 mt-2">
-            Increases when you completed everything yesterday.
-          </p>
+      <!-- STREAK (solo badge cambia de color según racha) -->
+      <div>
+        <div class="text-xs uppercase tracking-wider text-blue-800">Streak</div>
+        <div class={`mt-2 inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-base font-extrabold ${streakBadgeClasses}`}>
+          {streak} {streak > 0 ? '🔥' : ''}
         </div>
-
-        <hr class="my-4 border-slate-200" />
-
-        <div>
-          <div class="text-xs uppercase tracking-wider text-slate-500 mb-2">
-            Completed habits
-          </div>
-          {#if habits.length === 0}
-            <p class="text-sm text-slate-500">No habits.</p>
-          {:else}
-            <ul class="space-y-2">
-              {#each habits as habit, i}
-                {#if checks[i]}
-                  <li class="flex items-center justify-between rounded-lg border border-slate-200 bg-white/70 px-3 py-2">
-                    <label class="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        class="h-4 w-4 accent-indigo-600"
-                        bind:checked={checks[i]}
-                      />
-                      <span class="line-through text-slate-600">{habit}</span>
-                    </label>
-                  </li>
-                {/if}
-              {/each}
-            </ul>
-          {/if}
-        </div>
+        <p class="text-[11px] text-blue-800 mt-2">Increases when you completed everything yesterday.</p>
       </div>
 
-      <!-- Mini celebration GIF BELOW the sidebar card -->
-      {#if showCelebration}
-        <div class="mt-3 rounded-xl border border-slate-200 bg-white/90 p-2 shadow">
-          <div class="text-xs font-semibold text-slate-600 mb-1">Keep going!</div>
-          <img src={celebrationGif} alt="Effort celebration" class="h-24 w-auto rounded-lg" />
-        </div>
-      {/if}
+      <hr class="my-4 border-yellow-300" />
+
+      <!-- COMPLETED HABITS (en verde claro como claimed en Rewards) -->
+      <div>
+        <div class="text-xs uppercase tracking-wider text-blue-800 mb-2">Completed habits</div>
+        {#if habits.length === 0}
+          <p class="text-sm text-blue-800/90">No habits.</p>
+        {:else}
+          <ul class="space-y-2">
+            {#each habits as habit, i}
+              {#if checks[i]}
+                <li class="flex items-center justify-between rounded-lg border border-emerald-600 bg-emerald-300 px-3 py-2">
+                  <label class="flex items-center gap-2">
+                    <input type="checkbox" class="h-4 w-4 accent-emerald-700" bind:checked={checks[i]} />
+                    <span class="line-through text-emerald-900 font-medium">{habit}</span>
+                  </label>
+                </li>
+              {/if}
+            {/each}
+          </ul>
+        {/if}
+      </div>
     </div>
   </aside>
 
-  <!-- Main content -->
-  <section class="mx-auto max-w-6xl px-4 md:px-6 pt-16 pb-8">
-    <section class="text-center mb-10">
-      <h1 class="text-5xl md:text-8xl font-extrabold tracking-tight text-red-500 bg-clip-text bg-gradient-to-r from-indigo-700 via-sky-600 to-cyan-500 drop-shadow-sm">
-        DAYTRACK
-      </h1>
-      <p class="mt-8 text-lg md:text-xl text-slate-600">
-        Build better habits. Stay consistent. Reach your goals.
-      </p>
-      <p class="mt-4 text-xl font-semibold text-slate-800">
-        🔥 Streak: {streak} days
-      </p>
-    </section>
+  <!-- Encabezado: título grande, centrado y BLANCO (como pediste) -->
+  <header class="relative mb-10 md:mb-12">
+    <h1 class="text-center text-white text-5xl md:text-6xl font-extrabold tracking-tight">
+      DAYTRACK
+    </h1>
+    <!-- (sin botón Back aquí en home) -->
+  </header>
 
-    <div class="bg-white/90 backdrop-blur border border-slate-200 shadow-2xl rounded-3xl p-8">
-      <!-- Input -->
-      <label for="habit-input" class="block text-sm font-medium text-slate-600 mb-2">
+  <!-- Contenido principal: cards en AZUL CLARO, inputs en AZUL CLARO -->
+  <section class="mx-auto max-w-6xl space-y-6">
+
+    <!-- Mensaje bajo el título -->
+    <p class="text-center text-blue-200 text-lg md:text-xl">
+      Build better habits. Stay consistent. Reach your goals.
+    </p>
+
+    <!-- Card principal (azul claro) -->
+    <div class="rounded-2xl border border-sky-400 bg-sky-100 p-6 md:p-8 shadow">
+      <!-- Input habit (azul claro) -->
+      <label for="habit-input" class="block text-sm font-semibold text-blue-900 mb-2">
         Habit name
       </label>
       <input
@@ -383,14 +340,15 @@
         type="text"
         bind:value={habitText}
         placeholder="Write a habit..."
-        class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm mb-5"
+        class="w-full px-4 py-3 rounded-xl border border-sky-400 bg-sky-100
+               focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-sm mb-5 text-blue-900"
       />
 
-      <!-- Buttons -->
+      <!-- Botones (mantenemos estilos/acciones) -->
       <div class="flex flex-wrap gap-3 justify-center mb-6">
         <button
           on:click={addHabit}
-          class="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow"
+          class="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow"
         >
           ➕ Add Habit
         </button>
@@ -405,113 +363,108 @@
 
       {#if message}
         <p
-          class="text-center font-medium mb-6
-                 {message.startsWith('✅') ? 'text-emerald-600' : ''}
-                 {message.startsWith('❌') ? 'text-rose-600' : ''}
-                 {message.startsWith('⚠️') ? 'text-amber-600' : ''}
-                 {message.startsWith('🗑️') ? 'text-slate-600' : ''}"
+          class="text-center font-medium mb-6"
+          class:text-emerald-700={message.startsWith('✅')}
+          class:text-rose-700={message.startsWith('❌')}
+          class:text-amber-600={message.startsWith('⚠️')}
+          class:text-slate-700={message.startsWith('🗑️')}
         >
           {message}
         </p>
       {/if}
 
-      <!-- Pending habits -->
-      <h2 class="text-lg font-semibold text-slate-800 mb-3">Your habits</h2>
+      <!-- Lista de hábitos pendientes (card items azul muy claro + textos azul oscuro) -->
+      <h2 class="text-lg font-semibold text-blue-900 mb-3">Your habits</h2>
       <ul class="grid gap-3 sm:grid-cols-2">
         {#each habits as habit, i}
           {#if !checks[i]}
-            <li class="flex items-center gap-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 transition shadow-sm">
-              <input type="checkbox" class="w-5 h-5 accent-indigo-600" bind:checked={checks[i]} />
-              <span class="text-slate-800">{habit}</span>
+            <li class="flex items-center gap-3 bg-sky-50 hover:bg-sky-100
+                       border border-sky-200 rounded-xl px-4 py-3 transition shadow-sm">
+              <input type="checkbox" class="w-5 h-5 accent-emerald-600" bind:checked={checks[i]} />
+              <span class="text-blue-900">{habit}</span>
             </li>
           {/if}
         {/each}
       </ul>
 
-      <!-- Daily note -->
+      <!-- Nota del día (inputs azul claro, misma lógica) -->
       <div class="mt-8">
-        <h2 class="text-lg font-semibold text-slate-800 mb-2">
-          Daily note
-        </h2>
-        <p class="text-sm text-slate-600 mb-2">
-          Write how you felt today.
+        <h2 class="text-lg font-semibold text-blue-900 mb-2">Daily note ({toLocalYMD(new Date())})</h2>
+        <p class="text-sm text-blue-800 mb-2">
+          Write how you felt today. Stored per date for your Journal.
         </p>
         <textarea
           rows="4"
           bind:value={noteText}
           placeholder="How was your day? What did you learn, what was difficult, what are you proud of?"
-          class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 shadow-sm"
-          disabled={noteLocked}
+          class="w-full px-4 py-3 rounded-xl border border-sky-400 bg-sky-100
+                 focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-sm text-blue-900"
         ></textarea>
 
         <div class="mt-3 flex items-center gap-3">
           <button
             on:click={() => saveNoteFor(todayKey())}
-            class="px-4 py-2 rounded-xl text-white font-semibold shadow transition bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={noteLocked}
+            class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow transition"
           >
             💾 Save note
           </button>
           {#if noteMessage}
-            <span class="text-sm text-emerald-700">{noteMessage}</span>
+            <span class="text-sm text-emerald-200">{noteMessage}</span>
           {/if}
         </div>
       </div>
     </div>
   </section>
-  
 
-  <!-- DEBUG: Streak test panel -->
-<div class="fixed right-3 bottom-3 z-50 rounded-xl border border-slate-200 bg-white/90 backdrop-blur p-3 shadow space-y-2">
-  <div class="text-xs font-semibold text-slate-600">Debug Streak</div>
+  <!-- Mini celebración (mantenida) -->
+  {#if showCelebration}
+    <div class="fixed left-4 bottom-4 z-50 rounded-xl border border-slate-200 bg-white/90 p-2 shadow">
+      <div class="text-xs font-semibold text-slate-700 mb-1">Keep going!</div>
+      <img src={celebrationGif} alt="Effort celebration" class="h-24 w-auto rounded-lg" />
+    </div>
+  {/if}
 
-  <!-- Mark YESTERDAY as complete to increase streak -->
-  <button
-    class="w-full rounded-lg px-3 py-2 border text-sm hover:bg-slate-50"
-    on:click={() => {
-      const now = new Date();
-      const y = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-      const yKey = toLocalYMD(y);
-
-      // force yesterday as complete
-      localStorage.setItem(`checks-${yKey}`, JSON.stringify(habits.map(() => true)));
-      localStorage.setItem(`completed-${yKey}`, 'true');
-
-      localStorage.setItem('lastDate', yKey);
-      location.reload();
-    }}
-  >
-    ✓ Simulate yesterday complete (+1)
-  </button>
-
-  <!-- Simulate a missed day -->
-  <button
-    class="w-full rounded-lg px-3 py-2 border text-sm hover:bg-slate-50"
-    on:click={() => {
-      const now = new Date();
-      const twoDaysAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 2);
-      const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-      localStorage.setItem('lastDate', toLocalYMD(twoDaysAgo));
-      localStorage.setItem(`completed-${toLocalYMD(yesterday)}`, 'false');
-      location.reload();
-    }}
-  >
-    ⛔ Simulate missed day (reset)
-  </button>
-
-  <!-- Reset streak -->
-  <button
-    class="w-full rounded-lg px-3 py-2 border text-sm hover:bg-slate-50"
-    on:click={() => {
-      localStorage.setItem('streak', '0');
-      localStorage.removeItem('lastDate');
-      checks = checks.map(() => false);
-      saveChecksFor(todayKey());
-      alert('Streak reset. Start fresh!');
-    }}
-  >
-    ♻️ Reset streak
-  </button>
-</div>
-
+  <!-- DEBUG panel (mantenido; estilos mínimos) -->
+  <div class="fixed right-3 bottom-3 z-50 rounded-xl border border-slate-200 bg-white/90 backdrop-blur p-3 shadow space-y-2">
+    <div class="text-xs font-semibold text-slate-600">Debug Streak</div>
+    <button
+      class="w-full rounded-lg px-3 py-2 border text-sm hover:bg-slate-50"
+      on:click={() => {
+        const now = new Date();
+        const y = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+        const yKey = toLocalYMD(y);
+        localStorage.setItem(`checks-${yKey}`, JSON.stringify(habits.map(() => true)));
+        localStorage.setItem(`completed-${yKey}`, 'true');
+        localStorage.setItem('lastDate', yKey);
+        location.reload();
+      }}
+    >
+      ✓ Simulate yesterday complete (+1)
+    </button>
+    <button
+      class="w-full rounded-lg px-3 py-2 border text-sm hover:bg-slate-50"
+      on:click={() => {
+        const now = new Date();
+        const twoDaysAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 2);
+        const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+        localStorage.setItem('lastDate', toLocalYMD(twoDaysAgo));
+        localStorage.setItem(`completed-${toLocalYMD(yesterday)}`, 'false');
+        location.reload();
+      }}
+    >
+      ⛔ Simulate missed day (reset)
+    </button>
+    <button
+      class="w-full rounded-lg px-3 py-2 border text-sm hover:bg-slate-50"
+      on:click={() => {
+        localStorage.setItem('streak', '0');
+        localStorage.removeItem('lastDate');
+        checks = checks.map(() => false);
+        saveChecksFor(todayKey());
+        alert('Streak reset. Start fresh!');
+      }}
+    >
+      ♻️ Reset streak
+    </button>
+  </div>
 </main>
