@@ -248,6 +248,35 @@
     loadChecksFor(todayKey());
     loadNoteFor(todayKey());
   });
+
+  // --- Badge de recompensas pendientes (solo para el sidebar) ---
+let pendingRewards = 0;
+const REWARDS_LIST_KEY = 'rewards-list';
+
+function refreshPendingRewards() {
+  try {
+    const raw = localStorage.getItem(REWARDS_LIST_KEY);
+    if (!raw) { pendingRewards = 0; return; }
+    const arr = JSON.parse(raw);
+    pendingRewards = Array.isArray(arr) ? arr.filter((r: any) => !r?.claimed).length : 0;
+  } catch {
+    pendingRewards = 0;
+  }
+}
+
+onMount(() => {
+  refreshPendingRewards();
+  // si otro tab/página cambia rewards, nos actualizamos
+  window.addEventListener('storage', (e) => {
+    if (
+      e.key === REWARDS_LIST_KEY ||
+      (e.key?.startsWith('reward-') && e.key?.endsWith('-claimed'))
+    ) {
+      refreshPendingRewards();
+    }
+  });
+});
+
 </script>
 
 <!-- ========= DISTRIBUCIÓN + COLORES (solo clases y layout) ========= -->
@@ -279,6 +308,7 @@
   >
     <div class="h-full overflow-y-auto p-4 space-y-4 rounded-r-2xl border-r border-blue-900 bg-blue-200 shadow-xl">
       <div class="text-sm font-semibold text-blue-900">NAVIGATION</div>
+     <!-- Dentro del sidebar, donde tienes el nav -->
       <nav class="space-y-2">
         <a
           href="/diario"
@@ -297,14 +327,23 @@
           📅 Schedule
         </a>
         <a
-          href="/recompensas"
-          data-sveltekit-preload-data
-          class="block w-full text-left px-3 py-2 rounded-xl border border-yellow-300 bg-yellow-100 hover:bg-yellow-300 text-blue-900"
-          on:click={closeSidebar}
-        >
-          🏆 Your Rewards
-        </a>
+  href="/recompensas"
+  data-sveltekit-preload-data
+  class="relative flex items-center justify-between w-full px-3 py-2 rounded-xl border border-yellow-300 bg-yellow-100 hover:bg-yellow-300 text-blue-900"
+  on:click={closeSidebar}
+>
+  🏆 Your Rewards
+
+  {#if pendingRewards > 0}
+    <!-- badge circular -->
+    <span class="ml-2 inline-flex items-center justify-center rounded-full bg-red-600 text-white text-xs font-bold w-6 h-6">
+      {pendingRewards}
+    </span>
+  {/if}
+</a>
+
       </nav>
+
 
       <hr class="my-4 border-yellow-300" />
 
