@@ -102,7 +102,7 @@
 </script>
 
 <!-- Fondo azul marino (se mantiene) -->
-<main class="min-h-screen bg-blue-900 p-4 md:p-6 relative">
+<main class="min-h-screen bg-gray-700 p-4 md:p-6 relative">
 
   <!-- Botón hamburguesa -->
   <button
@@ -144,7 +144,7 @@
                 <span class="text-emerald-900 font-semibold">{r.title}</span>
                 <button
                   on:click={() => undoReward(r)}
-                  class="text-xs px-2 py-1 rounded bg-rose-600 text-white hover:bg-rose-700"
+                  class="text-xs px-2 py-1 rounded bg-red-600 text-white hover:bg-rose-700"
                 >
                   Undo
                 </button>
@@ -158,7 +158,7 @@
 
   <!-- Cabecera -->
   <header class="relative mb-10 md:mb-12">
-    <h1 class="text-center text-white text-5xl md:text-6xl font-extrabold tracking-tight">
+    <h1 class="text-center text-white text-3xl font-extrabold tracking-tight">
       🏆 YOUR REWARDS 🏆
     </h1>
     <a
@@ -178,8 +178,9 @@
   {/if}
 
   <!-- Card Add (azul más claro) -->
-  <div class="mb-6 rounded-2xl border border-blue-600 bg-blue-500 text-white p-5 shadow">
-    <h2 class="text-lg font-semibold mb-3">Add your own reward</h2>
+  <div class="mb-6 rounded-2xl gap-3 bg-sky-50 hover:bg-sky-100
+                       border border-sky-200 rounded-xl px-4 py-3 transition shadow-sm">
+    <h2 class="text-lg text-gray-700 font-semibold mb-3">Add your own reward</h2>
     <div class="flex flex-col gap-3 sm:flex-row">
       <!-- Inputs en azul claro -->
       <input
@@ -204,7 +205,7 @@
       <!-- Botón Add en tono más claro -->
       <button
         on:click={addReward}
-        class="px-5 py-2 rounded-xl bg-blue-400 hover:bg-blue-500 text-white font-semibold shadow"
+        class="px-5 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold shadow"
       >
         ➕ Add reward
       </button>

@@ -2,13 +2,22 @@
   import { onMount } from 'svelte';
 
   // -------------------------
-  // State + messages (SIN CAMBIOS DE LÓGICA)
+  // ESTADO INICIAL (variables reactivas)
   // -------------------------
-  let habits: string[] = []; // start with no habits
+
+  let habits: string[] = []; 
   let habitText = '';
   let message = '';
 
+  // -------------------------
+  // COMPARAR STRINGS (sin acentos, mayúsculas, espacios)
+  // -------------------------
+
   const normalize = (str: string) => str.trim().toLowerCase();
+
+    // -------------------------
+    // FUNCIONALIDADES (añadir habito, eliminar hábito)
+    // -------------------------
 
   function addHabit() {
     const text = habitText.trim();
@@ -24,7 +33,7 @@
     checks = [...checks, false];
     habitText = '';
     message = `✅ Habit "${text}" added.`;
-    saveChecksFor(todayKey());
+    saveChecksFor(todayKey()); // persiste el estado dia actual checks en localStorage
   }
 
   function removeHabitByName() {
@@ -33,6 +42,10 @@
       message = '⚠️ Write the habit name you want to remove.';
       return;
     }
+
+    /*busca dentro del array habits el indice idx que coincida con el name;
+    si el indice no se encuentra (-1) salta mensaje,
+    si coincide crea un array con todos los elementos menos el idx(lo mismo con el array checks, importante porque esta asociado)*/
     const idx = habits.findIndex((h) => normalize(h) === normalize(name));
     if (idx === -1) {
       message = `❌ The habit "${name}" does not exist.`;
@@ -46,11 +59,12 @@
   }
 
   // -------------------------
-  // Streak logic (SIN CAMBIOS)
+  // Racha (streak) y seguimiento diario (checks)
   // -------------------------
   let checks: boolean[] = [];
   let streak = 0;
 
+  // Convierte una fecha a formato YYYY-MM-DD local
   function toLocalYMD(d = new Date()): string {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -58,6 +72,7 @@
     return `${y}-${m}-${day}`;
   }
 
+  // Diferencia en días entre dos fechas YYYY-MM-DD
   function daysDiff(a: string, b: string): number {
     const pa = a.split('-').map(Number);
     const pb = b.split('-').map(Number);
@@ -68,11 +83,16 @@
   }
 
   const STREAK_KEY = 'streak';
-  const LAST_DAY_KEY = 'lastDate';
-  const COMPLETED_PREFIX = 'completed-';
-  const CHECKS_PREFIX = 'checks-';
-  const NOTE_PREFIX = 'note-';
+  const LAST_DAY_KEY = 'lastDate'; // última fecha que se actualizó la racha
+  const COMPLETED_PREFIX = 'completed-'; // indica si se completó el día
+  const CHECKS_PREFIX = 'checks-'; // array de booleanos de tareas por día
+  const NOTE_PREFIX = 'note-'; 
 
+    // -------------------------
+    // FUNCIONES generan nombres 
+    // para el local storage msimo formato
+    // -------------------------
+  
   function todayKey() { return toLocalYMD(new Date()); }
   function completedKey(date: string) { return `${COMPLETED_PREFIX}${date}`; }
   function checksKey(date: string) { return `${CHECKS_PREFIX}${date}`; }
@@ -81,6 +101,8 @@
   function saveChecksFor(date: string) {
     localStorage.setItem(checksKey(date), JSON.stringify(checks));
   }
+
+  // Garantiza que checks siempre esté alineado con los hábitos.
   function loadChecksFor(date: string) {
     const raw = localStorage.getItem(checksKey(date));
     const len = habits.length;
@@ -96,9 +118,11 @@
     checks = Array(len).fill(false);
   }
 
+  // Guarda en localStorage si un día específico se completó (true o false).
   function setCompleted(date: string, value: boolean) {
     localStorage.setItem(completedKey(date), JSON.stringify(!!value));
   }
+  // Recupera si un día específico se completó y lo pasa de bool a str (true o false).
   function getCompleted(date: string): boolean {
     const raw = localStorage.getItem(completedKey(date));
     if (!raw) return false;
@@ -114,6 +138,9 @@
 
   function saveLastDate(date: string) { localStorage.setItem(LAST_DAY_KEY, date); }
   function loadLastDate(): string | null { return localStorage.getItem(LAST_DAY_KEY); }
+
+  /* Se ejecuta al arrancar: compara fechas, actualiza la racha 
+  según si ayer completaste y prepara el estado de hoy.*/
 
   function rollStreakIfNewDay() {
     const today = todayKey();
@@ -149,7 +176,7 @@
   }
 
   // -------------------------
-  // Daily notes (SIN LÍMITE)
+  // Daily notes 
   // -------------------------
   let noteText: string = '';
   let noteMessage: string = '';
@@ -172,18 +199,18 @@
     // no lock; just preload nothing
     noteText = '';
     noteMessage = raw ? 'ℹ️ You already have notes today' : '';
-    colour
+  
   }
 
-  // -------------------------
-  // Sidebar (drawer) (SIN CAMBIOS DE LÓGICA)
-  // -------------------------
+
+  // Sidebar 
+
   let sidebarOpen = false;
   function toggleSidebar() { sidebarOpen = !sidebarOpen; }
   function closeSidebar() { sidebarOpen = false; }
 
   // -------------------------
-  // Celebration GIFs (SIN CAMBIOS DE LÓGICA)
+  // Celebration GIFs
   // -------------------------
   let showCelebration = false;
   let celebrationGif = '';
@@ -200,9 +227,9 @@
     }
   }
 
-  // -------------------------
-  // Streak badge colors (solo badge)
-  // -------------------------
+ 
+  // Funciones reactivas para colores segun racha 
+  
   $: streakBadgeClasses =
     streak >= 20
       ? 'bg-red-100/80 border-red-300 text-red-900'
@@ -211,6 +238,8 @@
       : streak >= 5
       ? 'bg-yellow-100/80 border-yellow-300 text-yellow-900'
       : 'bg-gray-100 border-gray-300 text-slate-900';
+
+  // Al arrancar, carga hábitos y checks, y gestiona racha; inicializa la app
 
   onMount(() => {
     checks = Array(habits.length).fill(false);
@@ -224,11 +253,11 @@
 <!-- ========= DISTRIBUCIÓN + COLORES (solo clases y layout) ========= -->
 
 <!-- Fondo azul marino, textos por defecto en azul oscuro para contraste en cards -->
-<main class="min-h-screen bg-blue-900 text-blue-900 relative p-4 md:p-6">
+<main class="min-h-screen bg-gray-800 text-blue-900 relative p-4 md:p-6">
 
   <!-- Botón hamburguesa (amarillo, como Rewards) -->
   <button
-    class="fixed left-4 top-4 z-50 rounded-xl border border-yellow-400 bg-yellow-300 px-3 py-2 shadow hover:bg-yellow-400"
+    class="fixed left-4 top-4 z-50 rounded-xl border border-yellow-400 bg-yellow-200 px-3 py-2 shadow hover:bg-yellow-400"
     on:click={toggleSidebar}
     aria-label="Open/close panel"
     aria-expanded={sidebarOpen}
@@ -248,13 +277,13 @@
     class="fixed left-0 top-0 z-50 h-full w-80 -translate-x-full transform transition-transform duration-300"
     class:translate-x-0={sidebarOpen}
   >
-    <div class="h-full overflow-y-auto p-4 space-y-4 rounded-r-2xl border-r border-yellow-400 bg-yellow-200 shadow-xl">
-      <div class="text-sm font-semibold text-blue-800">Navigation</div>
+    <div class="h-full overflow-y-auto p-4 space-y-4 rounded-r-2xl border-r border-yellow-900 bg-yellow-200 shadow-xl">
+      <div class="text-sm font-semibold text-blue-900">NAVIGATION</div>
       <nav class="space-y-2">
         <a
           href="/diario"
           data-sveltekit-preload-data
-          class="block w-full text-left px-3 py-2 rounded-xl border border-yellow-300 bg-yellow-100 hover:bg-yellow-200 text-blue-900"
+          class="block w-full text-left px-3 py-2 rounded-xl border border-yellow-300 bg-yellow-100 hover:bg-yellow-300 text-blue-900"
           on:click={closeSidebar}
         >
           📔 Journal
@@ -262,7 +291,7 @@
         <a
           href="/agenda"
           data-sveltekit-preload-data
-          class="block w-full text-left px-3 py-2 rounded-xl border border-yellow-300 bg-yellow-100 hover:bg-yellow-200 text-blue-900"
+          class="block w-full text-left px-3 py-2 rounded-xl border border-yellow-300 bg-yellow-100 hover:bg-yellow-300 text-blue-900"
           on:click={closeSidebar}
         >
           📅 Schedule
@@ -270,7 +299,7 @@
         <a
           href="/recompensas"
           data-sveltekit-preload-data
-          class="block w-full text-left px-3 py-2 rounded-xl border border-yellow-300 bg-yellow-100 hover:bg-yellow-200 text-blue-900"
+          class="block w-full text-left px-3 py-2 rounded-xl border border-yellow-300 bg-yellow-100 hover:bg-yellow-300 text-blue-900"
           on:click={closeSidebar}
         >
           🏆 Your Rewards
@@ -325,12 +354,12 @@
   <section class="mx-auto max-w-6xl space-y-6">
 
     <!-- Mensaje bajo el título -->
-    <p class="text-center text-blue-200 text-lg md:text-xl">
+    <p class="text-center text-blue-400 text-lg md:text-xl">
       Build better habits. Stay consistent. Reach your goals.
     </p>
 
     <!-- Card principal (azul claro) -->
-    <div class="rounded-2xl border border-sky-400 bg-sky-100 p-6 md:p-8 shadow">
+    <div class="rounded-2xl border border-sky-400 bg-sky-200 p-6 md:p-8 shadow">
       <!-- Input habit (azul claro) -->
       <label for="habit-input" class="block text-sm font-semibold text-blue-900 mb-2">
         Habit name
@@ -348,13 +377,13 @@
       <div class="flex flex-wrap gap-3 justify-center mb-6">
         <button
           on:click={addHabit}
-          class="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow"
+          class="px-5 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold shadow"
         >
           ➕ Add Habit
         </button>
         <button
           on:click={removeHabitByName}
-          class="px-5 py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold shadow"
+          class="px-5 py-3 rounded-xl border border-red-700 bg-red-600 px-4 py-2 text-white hover:bg-red-700 shadow-sm"
           title="Write the exact name of the habit and press"
         >
           🗑️ Remove Habit
@@ -404,12 +433,12 @@
         <div class="mt-3 flex items-center gap-3">
           <button
             on:click={() => saveNoteFor(todayKey())}
-            class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow transition"
+            class="px-4 py-2 rounded-xl bg-blue-800 hover:bg-blue-700 text-white font-semibold shadow transition"
           >
             💾 Save note
           </button>
           {#if noteMessage}
-            <span class="text-sm text-emerald-200">{noteMessage}</span>
+            <span class="text-sm text-black-200">{noteMessage}</span>
           {/if}
         </div>
       </div>

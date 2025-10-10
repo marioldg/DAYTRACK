@@ -51,20 +51,20 @@
   onMount(loadEvents);
 </script>
 
-<main class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-6">
+<main class="min-h-screen bg-gray-700 p-6">
   <div class="mx-auto max-w-3xl">
     <header class="mb-6 flex items-center justify-between">
-      <h1 class="text-3xl font-extrabold text-slate-800">📅 Schedule</h1>
+      <h1 class="text-3xl font-extrabold text-slate-800 text-white">📅 SCHEDULE</h1>
       <a
         href="/"
-        class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-slate-700 hover:bg-slate-50 shadow-sm"
+         class="rounded-xl border border-red-700 bg-red-600 px-4 py-2 text-white hover:bg-red-700 shadow-sm"
       >
         ← Back
       </a>
     </header>
 
     <!-- Input for new event -->
-    <div class="mb-6 rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm">
+    <div class="mb-6 rounded-2xl border border-slate-200 bg-sky-200 p-5 shadow-sm">
       <h2 class="text-lg font-semibold text-slate-800 mb-3">Add Event</h2>
       <div class="flex flex-col gap-3 sm:flex-row">
         <input
@@ -80,7 +80,7 @@
         />
         <button
           on:click={addEvent}
-          class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow"
+          class="px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold shadow"
         >
           ➕ Add
         </button>
@@ -89,17 +89,17 @@
 
     <!-- List of events -->
     {#if events.length === 0}
-      <p class="text-slate-500">No events scheduled yet.</p>
+      <p class="text-blue-400 slate-500">No events scheduled yet.</p>
     {:else}
       <ul class="space-y-3">
         {#each events as ev, i}
-          <li class="flex items-center justify-between rounded-xl border border-slate-200 bg-white/90 px-4 py-3 shadow-sm">
+          <li class="flex items-center justify-between rounded-xl border border-slate-200 bg-sky-300 p-5 shadow-sm">
             <div>
               <span class="font-semibold text-slate-700">{ev.time}</span> — {ev.text}
             </div>
             <button
               on:click={() => removeEvent(i)}
-              class="px-2 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-sm shadow"
+              class="px-2 py-1 border border-red-700 bg-red-600 px-4 py-2 text-white hover:bg-red-700 shadow-sm rounded-lg text-sm"
             >
               Delete
             </button>
