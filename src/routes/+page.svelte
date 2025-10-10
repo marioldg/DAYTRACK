@@ -271,13 +271,13 @@
     <div class="fixed inset-0 z-40 bg-black/40" on:click={closeSidebar} />
   {/if}
 
-  <!-- Drawer lateral (amarillo) -->
+  <!-- Drawer lateral (azul) -->
   <aside
     id="app-sidebar"
     class="fixed left-0 top-0 z-50 h-full w-80 -translate-x-full transform transition-transform duration-300"
     class:translate-x-0={sidebarOpen}
   >
-    <div class="h-full overflow-y-auto p-4 space-y-4 rounded-r-2xl border-r border-yellow-900 bg-yellow-200 shadow-xl">
+    <div class="h-full overflow-y-auto p-4 space-y-4 rounded-r-2xl border-r border-blue-900 bg-blue-200 shadow-xl">
       <div class="text-sm font-semibold text-blue-900">NAVIGATION</div>
       <nav class="space-y-2">
         <a

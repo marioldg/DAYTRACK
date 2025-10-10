@@ -124,7 +124,7 @@
     aria-hidden={!sidebarOpen}
   >
     <!-- Panel en amarillo -->
-    <div class="h-full overflow-y-auto p-4 space-y-4 rounded-r-2xl border-r border-yellow-400 bg-yellow-200 shadow-xl">
+    <div class="h-full overflow-y-auto p-4 space-y-4 rounded-r-2xl border-r border-blue-400 bg-blue-200 shadow-xl">
       <div>
         <div class="text-sm font-semibold text-blue-800">Current streak</div>
         <div class="text-2xl font-extrabold text-blue-900 flex items-center gap-2">
