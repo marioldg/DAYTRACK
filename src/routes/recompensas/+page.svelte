@@ -71,14 +71,25 @@
     rewardDescription = '';
   }
 
-  function claimReward(r: Reward) {
-    if (r.claimed) return;
-    r.claimed = true;
-    saveRewards();
-    rewards = [...rewards]; // reactividad
-    notification = `🎉 Congratulations! You unlocked "${r.title}" 🎉`;
-    setTimeout(() => (notification = ''), 3500);
+function claimReward(r: Reward) {
+  if (r.claimed) return;
+  r.claimed = true;
+  saveRewards();
+  rewards = [...rewards];
+  notification = `🎉 Congratulations! You unlocked "${r.title}" 🎉`;
+  setTimeout(() => (notification = ''), 3500);
+
+  // 🔔 NUEVO: eliminar notificación si ya no hay recompensas por reclamar
+  const unseenCountElement = document.querySelector('#rewards-notification');
+  if (unseenCountElement) {
+    // Reduce en 1 el número mostrado (sin dejarlo en negativo)
+    const currentCount = Number(unseenCountElement.textContent) || 0;
+    const newCount = Math.max(0, currentCount - 1);
+    unseenCountElement.textContent = newCount > 0 ? String(newCount) : '';
+    if (newCount === 0) unseenCountElement.classList.add('hidden');
   }
+}
+
 
   function undoReward(r: Reward) {
     r.claimed = false;
@@ -159,7 +170,7 @@
   <!-- Cabecera -->
   <header class="relative mb-10 md:mb-12">
     <h1 class="text-center text-white text-3xl font-extrabold tracking-tight">
-      🏆 YOUR REWARDS 🏆
+       YOUR REWARDS 
     </h1>
     <a
       href="/"
