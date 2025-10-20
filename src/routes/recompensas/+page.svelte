@@ -79,7 +79,7 @@ function claimReward(r: Reward) {
   notification = `🎉 Congratulations! You unlocked "${r.title}" 🎉`;
   setTimeout(() => (notification = ''), 3500);
 
-  // 🔔 NUEVO: eliminar notificación si ya no hay recompensas por reclamar
+  // Eliminar notificación si ya no hay recompensas por reclamar
   const unseenCountElement = document.querySelector('#rewards-notification');
   if (unseenCountElement) {
     // Reduce en 1 el número mostrado (sin dejarlo en negativo)
@@ -112,7 +112,7 @@ function claimReward(r: Reward) {
   $: visibleList = rewards.filter(r => !r.claimed);
 </script>
 
-<!-- Fondo azul marino (se mantiene) -->
+<!-- Fondo -->
 <main class="min-h-screen bg-gray-700 p-4 md:p-6 relative">
 
   <!-- Botón hamburguesa -->
@@ -134,7 +134,7 @@ function claimReward(r: Reward) {
     class:translate-x-0={sidebarOpen}
     aria-hidden={!sidebarOpen}
   >
-    <!-- Panel en amarillo -->
+    <!-- Panel -->
     <div class="h-full overflow-y-auto p-4 space-y-4 rounded-r-2xl border-r border-blue-400 bg-blue-200 shadow-xl">
       <div>
         <div class="text-sm font-semibold text-blue-800">Current streak</div>
@@ -150,7 +150,7 @@ function claimReward(r: Reward) {
         {:else}
           <ul class="space-y-2">
             {#each claimedList as r}
-              <!-- Claimed en verde MÁS oscuro -->
+              <!-- Claimed-->
               <li class="rounded-lg border border-emerald-600 bg-emerald-300 px-3 py-2 flex items-center justify-between">
                 <span class="text-emerald-900 font-semibold">{r.title}</span>
                 <button
@@ -188,12 +188,12 @@ function claimReward(r: Reward) {
     </div>
   {/if}
 
-  <!-- Card Add (azul más claro) -->
+  <!-- Card Add -->
   <div class="mb-6 rounded-2xl gap-3 bg-sky-50 hover:bg-sky-100
                        border border-sky-200 rounded-xl px-4 py-3 transition shadow-sm">
     <h2 class="text-lg text-gray-700 font-semibold mb-3">Add your own reward</h2>
     <div class="flex flex-col gap-3 sm:flex-row">
-      <!-- Inputs en azul claro -->
+      <!-- Inputs -->
       <input
         type="text"
         bind:value={rewardTitle}
@@ -213,7 +213,7 @@ function claimReward(r: Reward) {
         placeholder="Description (optional)"
         class="flex-1 px-4 py-2 rounded-xl border border-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-400 shadow-sm bg-sky-100 text-blue-900"
       />
-      <!-- Botón Add en tono más claro -->
+      <!-- Botón Add -->
       <button
         on:click={addReward}
         class="px-5 py-3 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold shadow"
@@ -223,7 +223,7 @@ function claimReward(r: Reward) {
     </div>
   </div>
 
-  <!-- Recompensas no reclamadas: azul claro + textos en azul más oscuro -->
+  <!-- Recompensas no reclamadas -->
   <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
     {#if visibleList.length === 0}
       <p class="text-blue-200">No rewards yet. Add one above.</p>
@@ -242,7 +242,7 @@ function claimReward(r: Reward) {
             </p>
           </div>
 
-          <!-- Claim verde -->
+          <!-- Claim -->
           <button
             on:click={() => claimReward(r)}
             class="mt-3 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
@@ -251,7 +251,7 @@ function claimReward(r: Reward) {
             {streak >= r.days ? 'Claim' : 'Locked'}
           </button>
 
-          <!-- Delete rojo debajo -->
+          <!-- Delete-->
           <button
             on:click={() => deleteReward(r)}
             class="mt-2 px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold"

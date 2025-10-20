@@ -196,7 +196,6 @@
   }
   function loadNoteFor(date: string) {
     const raw = localStorage.getItem(noteKey(date));
-    // no lock; just preload nothing
     noteText = '';
     noteMessage = raw ? 'ℹ️ You already have notes today' : '';
   
@@ -249,7 +248,7 @@
     loadNoteFor(todayKey());
   });
 
-  // --- Badge de recompensas pendientes (solo para el sidebar) ---
+  // --- Badge de recompensas pendientes  ---
 let pendingRewards = 0;
 const REWARDS_LIST_KEY = 'rewards-list';
 
@@ -284,7 +283,7 @@ onMount(() => {
 <!-- Fondo azul marino, textos por defecto en azul oscuro para contraste en cards -->
 <main class="min-h-screen bg-gray-800 text-blue-900 relative p-4 md:p-6">
 
-  <!-- Botón hamburguesa (amarillo, como Rewards) -->
+  <!-- Botón hamburguesa -->
   <button
     class="fixed left-4 top-4 z-50 rounded-xl border border-yellow-400 bg-yellow-200 px-3 py-2 shadow hover:bg-yellow-400"
     on:click={toggleSidebar}
@@ -300,7 +299,7 @@ onMount(() => {
     <div class="fixed inset-0 z-40 bg-black/40" on:click={closeSidebar} />
   {/if}
 
-  <!-- Drawer lateral (azul) -->
+  <!-- Drawer lateral -->
   <aside
     id="app-sidebar"
     class="fixed left-0 top-0 z-50 h-full w-80 -translate-x-full transform transition-transform duration-300"
@@ -308,7 +307,7 @@ onMount(() => {
   >
     <div class="h-full overflow-y-auto p-4 space-y-4 rounded-r-2xl border-r border-blue-900 bg-blue-200 shadow-xl">
       <div class="text-sm font-semibold text-blue-900">NAVIGATION</div>
-     <!-- Dentro del sidebar, donde tienes el nav -->
+     
       <nav class="space-y-2">
         <a
           href="/diario"
@@ -347,7 +346,7 @@ onMount(() => {
 
       <hr class="my-4 border-yellow-300" />
 
-      <!-- STREAK (solo badge cambia de color según racha) -->
+      <!-- STREAK -->
       <div>
         <div class="text-xs uppercase tracking-wider text-blue-800">Streak</div>
         <div class={`mt-2 inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-base font-extrabold ${streakBadgeClasses}`}>
@@ -358,7 +357,7 @@ onMount(() => {
 
       <hr class="my-4 border-yellow-300" />
 
-      <!-- COMPLETED HABITS (en verde claro como claimed en Rewards) -->
+      <!-- COMPLETED HABITS  -->
       <div>
         <div class="text-xs uppercase tracking-wider text-blue-800 mb-2">Completed habits</div>
         {#if habits.length === 0}
@@ -386,10 +385,10 @@ onMount(() => {
     <h1 class="text-center text-white text-5xl md:text-6xl font-extrabold tracking-tight">
       DAYTRACK
     </h1>
-    <!-- (sin botón Back aquí en home) -->
+
   </header>
 
-  <!-- Contenido principal: cards en AZUL CLARO, inputs en AZUL CLARO -->
+  <!-- Contenido principal -->
   <section class="mx-auto max-w-6xl space-y-6">
 
     <!-- Mensaje bajo el título -->
@@ -397,9 +396,9 @@ onMount(() => {
       Build better habits. Stay consistent. Reach your goals.
     </p>
 
-    <!-- Card principal (azul claro) -->
+    <!-- Card principal -->
     <div class="rounded-2xl border border-sky-400 bg-sky-200 p-6 md:p-8 shadow">
-      <!-- Input habit (azul claro) -->
+      <!-- Input habit -->
       <label for="habit-input" class="block text-sm font-semibold text-blue-900 mb-2">
         Habit name
       </label>
@@ -412,7 +411,7 @@ onMount(() => {
                focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-sm mb-5 text-blue-900"
       />
 
-      <!-- Botones (mantenemos estilos/acciones) -->
+      <!-- Botones -->
       <div class="flex flex-wrap gap-3 justify-center mb-6">
         <button
           on:click={addHabit}
@@ -441,7 +440,7 @@ onMount(() => {
         </p>
       {/if}
 
-      <!-- Lista de hábitos pendientes (card items azul muy claro + textos azul oscuro) -->
+      <!-- Lista de hábitos pendientes-->
       <h2 class="text-lg font-semibold text-blue-900 mb-3">Your habits</h2>
       <ul class="grid gap-3 sm:grid-cols-2">
         {#each habits as habit, i}
@@ -455,7 +454,7 @@ onMount(() => {
         {/each}
       </ul>
 
-      <!-- Nota del día (inputs azul claro, misma lógica) -->
+      <!-- Nota del día -->
       <div class="mt-8">
         <h2 class="text-lg font-semibold text-blue-900 mb-2">Daily note ({toLocalYMD(new Date())})</h2>
         <p class="text-sm text-blue-800 mb-2">
@@ -484,7 +483,7 @@ onMount(() => {
     </div>
   </section>
 
-  <!-- Mini celebración (mantenida) -->
+  <!-- Mini celebración -->
   {#if showCelebration}
     <div class="fixed left-4 bottom-4 z-50 rounded-xl border border-slate-200 bg-white/90 p-2 shadow">
       <div class="text-xs font-semibold text-slate-700 mb-1">Keep going!</div>
@@ -492,7 +491,7 @@ onMount(() => {
     </div>
   {/if}
 
-  <!-- DEBUG panel (mantenido; estilos mínimos) -->
+  <!-- DEBUG panel -->
   <div class="fixed right-3 bottom-3 z-50 rounded-xl border border-slate-200 bg-white/90 backdrop-blur p-3 shadow space-y-2">
     <div class="text-xs font-semibold text-slate-600">Debug Streak</div>
     <button

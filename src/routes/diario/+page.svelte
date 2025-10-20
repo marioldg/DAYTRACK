@@ -28,9 +28,6 @@
 
   onMount(loadNotes);
 
-  // ----------------------
-  // ONLY ADDED FOR EDIT/DELETE (no touching the rest)
-  // ----------------------
   let editOpen = false;
   let editNote: NoteItem | null = null;
   let editText = '';
@@ -77,7 +74,7 @@
     <h1 class="text-2xl font-bold text-slate-200 flex items-center gap-2">
       📔 DIARY
     </h1>
-    <!-- Botón Back existente (sin tocar) -->
+    
     <a
       href="/"
       class="text-sm rounded-lg border border-slate-200 bg-red-600 px-3 py-1.5 hover:bg-red-700 text-white"
@@ -101,7 +98,6 @@
                 <p class="text-base sm:text-lg font-semibold text-slate-800">{n.date}</p>
               </div>
 
-              <!-- 🔹 Botonera: mantengo exactamente el estilo del botón Copy -->
               <div class="flex items-center gap-2">
                 <button
                   class="text-sm rounded-lg border border-slate-200 bg-sky-300 px-2 py-1 hover:bg-blue-400 text-slate-700"
@@ -112,7 +108,7 @@
                   Copy
                 </button>
 
-                <!-- 🆕 Edit (mismas clases para no cambiar diseño) -->
+                
                 <button
                   class="text-sm rounded-lg border border-slate-200 bg-yellow-200 px-2 py-1 hover:bg-yellow-400 text-slate-700"
                   on:click={() => openEdit(n)}
@@ -122,7 +118,7 @@
                   Edit
                 </button>
 
-                <!-- 🆕 Delete (mismas clases para no cambiar diseño) -->
+                
                 <button
                   class="text-sm rounded-lg border border-slate-200 bg-red-300 px-2 py-1 hover:bg-red-500 text-slate-700"
                   on:click={() => openDelete(n)}
@@ -142,8 +138,7 @@
       </ul>
     {/if}
   </div>
-
-  <!-- 📝 Modal de edición: overlay mínimo para no afectar tu CSS -->
+     
   {#if editOpen}
     <div
       class="fixed inset-0 z-50"
@@ -167,7 +162,7 @@
     </div>
   {/if}
 
-  <!-- 🗑 Confirmación de borrado -->
+  <!-- Confirmación de borrado -->
   {#if deleteOpen}
     <div
       class="fixed inset-0 z-50"
