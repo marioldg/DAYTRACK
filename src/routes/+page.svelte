@@ -252,16 +252,30 @@
 let pendingRewards = 0;
 const REWARDS_LIST_KEY = 'rewards-list';
 
+// helper: obtiene el umbral de días desde distintos posibles nombres de campo
+function getRequiredDays(r: any): number {
+  const raw =
+    r?.daysRequired ?? r?.requiredDays ?? r?.minDays ??
+    r?.threshold ?? r?.streakNeeded ?? r?.minStreak ?? r?.days;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? n : Number.POSITIVE_INFINITY;
+}
+
 function refreshPendingRewards() {
   try {
     const raw = localStorage.getItem(REWARDS_LIST_KEY);
     if (!raw) { pendingRewards = 0; return; }
     const arr = JSON.parse(raw);
-    pendingRewards = Array.isArray(arr) ? arr.filter((r: any) => !r?.claimed).length : 0;
+
+    // ✅ Solo cuenta recompensas NO reclamadas y cuyo umbral ≤ racha actual
+    pendingRewards = Array.isArray(arr)
+      ? arr.filter((r: any) => !r?.claimed && streak >= getRequiredDays(r)).length
+      : 0;
   } catch {
     pendingRewards = 0;
   }
 }
+
 
 onMount(() => {
   refreshPendingRewards();
